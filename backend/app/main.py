@@ -1,17 +1,102 @@
-from fastapi import FastAPI
+import logging
+
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+
+from app.routers import donations, matches, ngos, requirements
+
+
+logger = logging.getLogger("foodrescue")
+
+
+tags_metadata = [
+    {
+        "name": "Donations",
+        "description": "Surplus food listings from donors",
+    },
+    {
+        "name": "NGOs",
+        "description": "Organizations that receive food",
+    },
+    {
+        "name": "Requirements",
+        "description": "What food each NGO needs",
+    },
+    {
+        "name": "Matches",
+        "description": "Stored donation-to-NGO matches",
+    },
+]
+
 
 app = FastAPI(
     title="FoodRescue API",
     description="AI-powered food redistribution system",
-    version="0.1.0",
+    version="0.3.0",
+    openapi_tags=tags_metadata,
 )
+
+
+# Register API routers
+app.include_router(donations.router)
+app.include_router(ngos.router)
+app.include_router(requirements.router)
+app.include_router(matches.router)
+
+
+# Handle database constraint errors
+@app.exception_handler(IntegrityError)
+async def integrity_error_handler(
+    request: Request,
+    exc: IntegrityError,
+):
+    logger.error(
+        "Integrity error on %s %s: %s",
+        request.method,
+        request.url.path,
+        exc.orig,
+    )
+
+    return JSONResponse(
+        status_code=409,
+        content={
+            "detail": "Request conflicts with existing data or violates a database rule."
+        },
+    )
+
+
+# Handle other database errors
+@app.exception_handler(SQLAlchemyError)
+async def database_error_handler(
+    request: Request,
+    exc: SQLAlchemyError,
+):
+    logger.error(
+        "Database error on %s %s: %s",
+        request.method,
+        request.url.path,
+        exc,
+    )
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "A database error occurred."
+        },
+    )
 
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to FoodRescue API", "status": "running"}
+    return {
+        "message": "Welcome to FoodRescue API",
+        "status": "running",
+    }
 
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
+    return {
+        "status": "ok"
+    }
