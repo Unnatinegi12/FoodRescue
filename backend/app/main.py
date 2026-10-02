@@ -4,7 +4,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
-from app.routers import donations, matches, matching, ngos, requirements
+from app.routers import donations, matches, matching, matching_cpp, ngos, requirements
+from app.routers import rag
 
 
 logger = logging.getLogger("foodrescue")
@@ -34,7 +35,7 @@ tags_metadata = [
 app = FastAPI(
     title="FoodRescue API",
     description="AI-powered food redistribution system",
-   version="0.4.0",
+   version="0.6.0",
     openapi_tags=tags_metadata,
 )
 
@@ -45,6 +46,8 @@ app.include_router(ngos.router)
 app.include_router(requirements.router)
 app.include_router(matches.router)
 app.include_router(matching.router)
+app.include_router(matching_cpp.router)
+app.include_router(rag.router)
 
 
 # Handle database constraint errors
