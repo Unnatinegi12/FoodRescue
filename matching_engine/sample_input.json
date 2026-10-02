@@ -1,0 +1,53 @@
+{
+  "donation": {
+    "id": 1,
+    "food_type": "rice",
+    "quantity_kg": 50,
+    "city": "Jaipur",
+    "expiry_time": "2026-10-03T18:00:00",
+    "is_vegetarian": true
+  },
+  "ngos": [
+    {
+      "id": 1,
+      "name": "Helping Hands",
+      "city": "Jaipur",
+      "capacity_kg": 100,
+      "accepts_non_veg": false
+    },
+    {
+      "id": 2,
+      "name": "Food For All",
+      "city": "Delhi",
+      "capacity_kg": 100,
+      "accepts_non_veg": true
+    },
+    {
+      "id": 3,
+      "name": "Hope Foundation",
+      "city": "Jaipur",
+      "capacity_kg": 100,
+      "accepts_non_veg": true
+    }
+  ],
+  "requirements": [
+    {
+      "id": 1,
+      "ngo_id": 1,
+      "food_type": "rice",
+      "required_meals": 50
+    },
+    {
+      "id": 2,
+      "ngo_id": 2,
+      "food_type": "rice",
+      "required_meals": 60
+    },
+    {
+      "id": 3,
+      "ngo_id": 3,
+      "food_type": "rice",
+      "required_meals": 50
+    }
+  ]
+}
