@@ -207,3 +207,29 @@ class MatchResponse(BaseModel):
     match_score: float
     status: str
     created_at: datetime
+    # ------------------------- Matching engine --------------------------
+
+
+class ScoreBreakdownResponse(BaseModel):
+    food_type: float
+    quantity: float
+    location: float
+    expiry: float
+    capacity: float
+
+
+class RankedMatchResponse(BaseModel):
+    match_id: int
+    donation_id: int
+    ngo_id: int
+    ngo_name: str
+    requirement_id: int
+    match_score: float
+    status: str
+    breakdown: ScoreBreakdownResponse
+
+
+class MatchRunResponse(BaseModel):
+    donation_id: int
+    matches_found: int
+    matches: list[RankedMatchResponse]

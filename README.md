@@ -4,14 +4,14 @@ FoodRescue is an AI-powered food redistribution platform designed to reduce food
 
 The system allows donors to provide information about surplus food such as food type, quantity, location, and expiry time. NGOs can specify their food requirements and capacity.
 
-The project will use SQL for structured data management, a C++ matching engine for intelligent NGO ranking, and a RAG-based GenAI pipeline for grounded food-safety and redistribution recommendations.
+The project uses SQL for structured data management, a Python matching engine that will later be integrated with C++, and a RAG-based GenAI pipeline for grounded food-safety and redistribution recommendations.
 
 ## Tech Stack
 
 - Frontend: React
 - Backend: FastAPI
 - Database: MySQL
-- Matching Engine: C++
+- Matching Engine: Python → C++
 - GenAI: LLM + RAG
 - Vector Database: To be added
 - Version Control: Git & GitHub
@@ -19,11 +19,13 @@ The project will use SQL for structured data management, a C++ matching engine f
 ## Current Features
 
 ### Phase 1 — FastAPI Setup
+
 - Basic FastAPI application
 - Health check endpoint
 - Project structure
 
 ### Phase 2 — MySQL Database
+
 - MySQL database schema
 - Users and role-based profiles
 - Donor management
@@ -34,54 +36,49 @@ The project will use SQL for structured data management, a C++ matching engine f
 - Foreign keys and constraints
 - Seed data for testing
 
-## Database Structure
+### Phase 3 — Donation and NGO APIs
 
-The main tables are:
+- Donation CRUD APIs
+- NGO APIs
+- NGO requirement APIs
+- Donation availability endpoint
+- Donation-NGO match retrieval
+- Pydantic request and response validation
+- SQLAlchemy integration with MySQL
+- API tests using pytest
 
-- `users`
-- `donors`
-- `ngos`
-- `food_donations`
-- `ngo_requirements`
-- `matches`
+### Phase 4 — Food Donation Matching Engine
 
-### Major Relationships
+For a donation, the system evaluates every NGO with an open requirement for the same food type.
 
-- One user → one donor or NGO profile
-- One donor → many food donations
-- One NGO → many food requirements
-- One food donation → many possible NGO matches
-- One NGO → many possible donation matches
+Matching is **deterministic** (no ML or LLM): unsuitable NGOs are filtered out, while suitable NGOs receive a **weighted score from 0–100** and are ranked from highest to lowest score.
 
-## Project Roadmap
+Results are stored in the MySQL `matches` table. If matching is run again for the same donation, existing matches are updated instead of creating duplicates.
 
-- [x] Phase 1 — FastAPI project setup
-- [x] Phase 2 — MySQL schema and seed data
-- [ ] Phase 3 — Donation and NGO APIs
-- [ ] Phase 4 — Food donation matching engine
-- [ ] Phase 5 — C++ matching engine integration
-- [ ] Phase 6 — Food safety RAG pipeline
-- [ ] Phase 7 — Grounded AI recommendations
-- [ ] Phase 8 — React dashboard
-- [ ] Phase 9 — Testing and validation
-- [ ] Phase 10 — Documentation
+| Factor | Points |
+|---|---:|
+| Food type match | 40 |
+| Quantity suitability | 20 |
+| Same city | 20 |
+| Time left before expiry | 10 |
+| NGO capacity fit | 10 |
+| **Total** | **100** |
 
-## Project Structure
+NGOs are rejected if:
+
+- The food type does not match the requirement.
+- The donation exceeds the NGO's capacity.
+- A non-vegetarian donation is matched with an NGO that does not accept non-vegetarian food.
+- The food would expire before the NGO could collect it.
+
+The scoring logic is implemented in:
+
+`backend/app/matching_engine/scoring.py`
+
+The Python implementation is designed so that the matching logic can later be connected to or reimplemented in C++.
+
+#### Matching APIs
 
 ```text
-FoodRescue/
-├── backend/
-│   ├── app/
-│   ├── database/
-│   │   ├── schema.sql
-│   │   └── seed.sql
-│   ├── requirements.txt
-│   └── .env.example
-├── matching_engine/
-├── rag/
-├── frontend/
-├── tests/
-├── docs/
-├── .gitignore
-├── LICENSE
-└── README.md
+POST /matching/donations/{id}/run
+GET  /matching/donations/{id}
